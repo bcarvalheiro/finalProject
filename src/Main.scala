@@ -68,7 +68,7 @@ class Main extends Application {
     // SubScene - composed by the nodes present in the worldRoot
     val subScene = new SubScene(environmentObjects, 800, 600, true, SceneAntialiasing.BALANCED)
     subScene.setFill(Color.DARKSLATEGRAY)
-    subScene.setCamera(camera)
+    //subScene.setCamera(camera)
 
     // camera.CameraView - an additional perspective of the environment
     val cameraView = new CameraView(subScene)
