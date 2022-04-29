@@ -4,6 +4,7 @@ import javafx.geometry.Bounds
 import javafx.scene.{Group, Node}
 import javafx.scene.paint.{Color, PhongMaterial}
 import javafx.scene.shape.{Box, Cylinder, DrawMode, Shape3D}
+import tree.Tree.{getSectionList, listOfObjInSection}
 
 object Tree {
 
@@ -47,19 +48,23 @@ object Tree {
           (v.appended(OcEmpty))
           // otherwise
         } else {
-          // if children can fit objects is OcNode
-          if (areSectionChildrenBigEnough(getSectionList(section._1, listObj))) {
+          // if children can fit ALL objects in parent is OcNode
+        //  if (areSectionChildrenBigEnough(getSectionList(section._1, listObj),listOfObjInSection(section._1,listObj))) {
+          println("Tamanho_Parent: " + section._2.size)
+          println("Tamanho_filhos: " + objectsInChildren(getSectionList(section._1, listObj)).size)
+          println(objectsInChildren(getSectionList(section._1, listObj)))
+          if (section._2.size == objectsInChildren(getSectionList(section._1, listObj)).size) {
             val sectionList = getSectionList(section._1, listObj)
             val octList = typeOfTreeNode(sectionList, section._1, listObj)
             val ocNode = new OcNode[Placement](section._1, octList(0), octList(1), octList(2), octList(3), octList(4), octList(5), octList(6), octList(7))
             val v = typeOfTreeNode(secList, parentPlacement, listObj)
-            println(ocNode)
+            println("OcNode: " + ocNode)
             v.appended(ocNode)
             // if children cannot contain objects is OcLeaf
           } else {
             val v = (typeOfTreeNode(secList, parentPlacement, listObj))
             val ocLeaf = new OcLeaf(parentPlacement, section)
-            println(ocLeaf)
+            println("OcLeaf: " + ocLeaf)
             v.appended(ocLeaf)
           }
         }
@@ -67,16 +72,29 @@ object Tree {
     }
   }
 
-  def areSectionChildrenBigEnough(sectionChildrenList: List[Section]): Boolean = {
+//  def areSectionChildrenBigEnough(sectionChildrenList: List[Section],parentSectionObjList: List[Section]): Boolean = {
+//
+//    sectionChildrenList match {
+//      case List() => false
+//      case sec :: secList => {
+//        if (sec._2.isEmpty) areSectionChildrenBigEnough(secList,parentSectionObjList)
+//        else true
+//      }
+//    }
+//  }
 
+  private def objectsInChildren(sectionChildrenList: List[Section]):List[Node]={
     sectionChildrenList match {
-      case List() => false
+      case List() => Nil
       case sec :: secList => {
-        if (sec._2.isEmpty) areSectionChildrenBigEnough(secList)
-        else true
+        val v = objectsInChildren(secList)
+        println(sec)
+         v ::: sec._2
       }
     }
   }
+
+
 
   private def getSectionList(placement: Placement, listObj: List[Node]): List[Section] = {
 
@@ -91,12 +109,6 @@ object Tree {
     val translZInf = (placement._1._3 - resize / 2)
     val translZSup = (placement._1._3 + resize / 2)
 
-//    val translX = x + resize
-//    val translY = y + resize
-//    val translZ = z + resize
-//    val qPlacement: List[Placement] = List(((x, y, z), resize), ((translX, y, z), resize), ((x, translY, z), resize),
-//      ((x, y, translZ), resize), ((translX, translY, z), resize), ((x, translY, translZ), resize),
-//      ((translX, y, translZ), resize), ((translX, translY, translZ), resize))
 
     val qPlacement: List[Placement] = List(((translXSup, translYSup, translZSup), resize), ((translXInf, translYSup, translZSup), resize), ((translXSup, translYInf, translZSup), resize),
       ((translXSup, translYSup, translZInf), resize), ((translXInf, translYInf, translZSup), resize), ((translXSup, translYInf, translZInf), resize),
@@ -130,18 +142,21 @@ object Tree {
       case List() => Nil
       case obj :: objList => {
 
-        println(node.getBoundsInParent)
-        println(obj.getBoundsInParent)
-        println(obj)
+//        println(node.getBoundsInParent)
+//        println(obj.getBoundsInParent)
+//        println(obj)
 
         if (node.getBoundsInParent.contains(obj.getBoundsInParent)) {
 
+          println(node.getBoundsInParent)
+          println(obj.getBoundsInParent)
+          println(obj)
           println("true")
           val v = listOfObjInSection(placement, objList)
           (v.prepended(obj))
         } else {
 
-          println("false")
+        //  println("false")
           val v = listOfObjInSection(placement, objList)
           (v)
         }
