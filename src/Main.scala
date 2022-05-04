@@ -13,6 +13,7 @@ import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
 import tree.Tree.{checkInSight, createTreeFromRoot, getOcTreeLeafsSection, listWiredBox}
 import tui.TextUserInterface
 import utils.configLoad
+import utils.configLoad.{blueMaterial, mapColourEffect, removeGreen, toSepia}
 
 import scala.io.Source
 
@@ -27,10 +28,6 @@ class Main extends Application {
   //Box and Cylinder are subclasses of Shape3D
   type Section = (Placement, List[Node])  //example: ( ((0.0,0.0,0.0), 2.0), List(new Cylinder(0.5, 1, 10)))
 
-
-  /*
-    Additional information about JavaFX basic concepts (e.g. Stage, Scene) will be provided in week7
-   */
   override def start(stage: Stage): Unit = {
     //Get and print program arguments (args: Array[String])
     val params = getParameters
@@ -48,7 +45,6 @@ class Main extends Application {
 
     val environmentObjects = configLoad.createEnvironment()
 
-
     //Make objects from file, instead of those two prebuild:
     //conf.txt has to be  avariable, so you can choose wich file you will run as config
     val configFile = "conf.txt"
@@ -65,21 +61,39 @@ class Main extends Application {
     //println(ourOctree)
 
 
+    val camera = new PerspectiveCamera(true)
+
+    val cameraTransform = new CameraTransformer
+    cameraTransform.setTranslate(0, 0, 0)
+    cameraTransform.getChildren.add(camera)
+    camera.setNearClip(0.1)
+    camera.setFarClip(10000.0)
+    camera.setTranslateZ(-500)
+    camera.setFieldOfView(20)
+    cameraTransform.ry.setAngle(-45.0)
+    cameraTransform.rx.setAngle(-45.0)
+
     // SubScene - composed by the nodes present in the worldRoot
     val subScene = new SubScene(environmentObjects, 800, 600, true, SceneAntialiasing.BALANCED)
     subScene.setFill(Color.DARKSLATEGRAY)
-    //subScene.setCamera(camera)
+    subScene.setCamera(camera)
 
     // camera.CameraView - an additional perspective of the environment
     val cameraView = new CameraView(subScene)
     cameraView.setFirstPersonNavigationEabled(true)
-    cameraView.setFitWidth(350)
-    cameraView.setFitHeight(225)
+    cameraView.setFitWidth(550)
+    cameraView.setFitHeight(525)
     cameraView.getRx.setAngle(-45)
     cameraView.getT.setZ(-100)
     cameraView.getT.setY(-500)
     cameraView.getCamera.setTranslateZ(-50)
     cameraView.startViewing
+
+    val camVolume = new Cylinder(10, 50, 10)
+    camVolume.setTranslateX(1)
+    camVolume.getTransforms().add(new Rotate(45, 0, 0, 0, Rotate.X_AXIS))
+    camVolume.setMaterial(blueMaterial)
+    camVolume.setDrawMode(DrawMode.LINE)
 
       // Position of the camera.CameraView: Right-bottom corner
       StackPane.setAlignment(cameraView, Pos.BOTTOM_RIGHT)
@@ -91,11 +105,13 @@ class Main extends Application {
     subScene.heightProperty.bind(root.heightProperty)
 
     val scene = new Scene(root, 810, 610, true, SceneAntialiasing.BALANCED)
-    //checkInSight(wiredBoxes,camVolume,worldRoot)
+    checkInSight(wiredBoxes,camVolume,environmentObjects)
+
+
     //Mouse left click interaction
     scene.setOnMouseClicked((event) => {
-      //camVolume.setTranslateX(camVolume.getTranslateX + 2)
-      //checkInSight(wiredBoxes,camVolume,worldRoot)
+      camVolume.setTranslateX(camVolume.getTranslateX + 2)
+      checkInSight(wiredBoxes,camVolume,environmentObjects)
       environmentObjects.getChildren.removeAll()
     })
 
@@ -104,30 +120,26 @@ class Main extends Application {
     stage.setScene(scene)
     stage.show
 
-    //adding boxes b2 and b3 to the world
+   println(mapColourEffect(toSepia,ourOctree))
 
+    //adding boxes b2 and b3 to the world
     //configLoad.addObjectToWorld(ourOctree,worldRoot)
     //println(configLoad.scaleOctree(0.5,ourOctree))
   }
-
-  override def init(): Unit = {
-    println("init")
-    //TextUserInterface.mainLoop()
-
-
-
-  }
-
-  override def stop(): Unit = {
-    println("stopped")
-  }
-
+//  override def init(): Unit = {
+//    println("init")
+//  }
+//
+//  override def stop(): Unit = {
+//    println("stopped")
+//  }
 }
 
 object FxApp {
   def main(args: Array[String]): Unit = {
     println("This is before launching app")
     Application.launch(classOf[Main], args: _*)
+    print("voltei aqui")
   }
 }
 
