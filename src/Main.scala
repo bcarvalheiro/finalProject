@@ -119,8 +119,7 @@ class Main extends Application {
     stage.setTitle("PPM Project 21/22")
     stage.setScene(scene)
     stage.show
-
-   println(mapColourEffect(toSepia,ourOctree))
+  // println(mapColourEffect(toSepia,ourOctree))
 
     //adding boxes b2 and b3 to the world
     //configLoad.addObjectToWorld(ourOctree,worldRoot)

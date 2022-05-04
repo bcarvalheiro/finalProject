@@ -139,20 +139,23 @@ object configLoad {
   def splitColorStringToMaterial(rgbColor : String) : PhongMaterial = {
     val colorAux  = rgbColor.substring(1,rgbColor.length-1).split(",")
     val color1 : List[Double] = List(colorAux(0).toDouble,colorAux(1).toDouble,colorAux(2).toDouble)
-    def subTract(color1 : List[Double]) : List[Double]={
-      color1 match {
-        case List() => Nil
-        case color::listColor =>
-          if(color == 255.0)
-            (color-0.1)+:subTract(listColor)
-          else
-            color+:subTract(listColor)
-      }
-    }
-    val color = subTract(color1)
-    //color map (x => if (x.eq(255.0)) x-1 else None)
+    val newRed = math min(colorAux(0).toInt, 255)
+    val newGreen = math min(colorAux(1).toInt, 255)
+    val newBlue = math min(colorAux(2).toInt, 255)
+//    def subTract(color1 : List[Double]) : List[Double]={
+//      color1 match {
+//        case List() => Nil
+//        case color::listColor =>
+//          if(color == 255.0)
+//            (color-0.1)+:subTract(listColor)
+//          else
+//            color+:subTract(listColor)
+//      }
+//    }
+    //val color = subTract(color1)
+    val color = Color.rgb(newRed,newGreen,newBlue)
     val material = new PhongMaterial()
-    material.setDiffuseColor(Color.rgb(color(0).toInt,color(1).toInt,color(2).toInt))
+    material.setDiffuseColor(color)
     material
   }
 
@@ -209,6 +212,7 @@ object configLoad {
             newMaterial.setDiffuseColor(newColor)
             head.asInstanceOf[Shape3D].setMaterial(newMaterial)
             mapColourEffect(func,OcLeaf(value,(placement,tail)))
+            OcLeaf((value,(placement,lista)))
         }
       case OcNode(placement: Placement, q1, q2, q3, q4, q5, q6, q7, q8) =>
         OcNode[Placement](placement, mapColourEffect(func, q1), mapColourEffect(func, q2), mapColourEffect(func, q3),
