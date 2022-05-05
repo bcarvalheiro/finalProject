@@ -34,6 +34,7 @@ object configLoad {
   val blueMaterial = new PhongMaterial()
   blueMaterial.setDiffuseColor(Color.rgb(0, 0, 150))
 
+
   def transScaleObject(object3D : Node, valueTrans : (Double,Double,Double), valueScale : (Double,Double,Double)) : Node = {
     object3D.setTranslateX(valueTrans._1)
     object3D.setTranslateY(valueTrans._2)
@@ -138,22 +139,7 @@ object configLoad {
 
   def splitColorStringToMaterial(rgbColor : String) : PhongMaterial = {
     val colorAux  = rgbColor.substring(1,rgbColor.length-1).split(",")
-    val color1 : List[Double] = List(colorAux(0).toDouble,colorAux(1).toDouble,colorAux(2).toDouble)
-    val newRed = math min(colorAux(0).toInt, 255)
-    val newGreen = math min(colorAux(1).toInt, 255)
-    val newBlue = math min(colorAux(2).toInt, 255)
-//    def subTract(color1 : List[Double]) : List[Double]={
-//      color1 match {
-//        case List() => Nil
-//        case color::listColor =>
-//          if(color == 255.0)
-//            (color-0.1)+:subTract(listColor)
-//          else
-//            color+:subTract(listColor)
-//      }
-//    }
-    //val color = subTract(color1)
-    val color = Color.rgb(newRed,newGreen,newBlue)
+    val color = Color.rgb(math min(colorAux(0).toInt, 255),math min(colorAux(1).toInt, 255),math min(colorAux(2).toInt, 255))
     val material = new PhongMaterial()
     material.setDiffuseColor(color)
     material
@@ -198,16 +184,17 @@ object configLoad {
     }
   }
 
-  def mapColourEffect(func: Color => Color, oct: Octree[Placement]): Octree[Placement] = {
+  def mapColourEffect(func: (Int,Int,Int) => Color, oct: Octree[Placement]): Octree[Placement] = {
     oct match {
       case OcEmpty => OcEmpty
       case OcLeaf((value : Placement, (placement : Placement, lista : List[Node]))) => lista match {
           case List() => OcLeaf((value,(placement,lista)))
           case head::tail =>
-            val r = head.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getRed
-            val g = head.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getGreen
-            val b = head.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getBlue
-            val newColor : Color = func(Color.color(r,g,b))
+            val color = head.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor
+            val colorInt = (((color.getRed * 255).toInt), ((color.getGreen * 255).toInt), ((color.getBlue * 255).toInt))
+            println("color2" + colorInt)
+            val newColor : Color = func(colorInt._1,colorInt._2,colorInt._3)
+            println("this is the new color " + newColor)
             val newMaterial = new PhongMaterial()
             newMaterial.setDiffuseColor(newColor)
             head.asInstanceOf[Shape3D].setMaterial(newMaterial)
@@ -220,42 +207,17 @@ object configLoad {
           mapColourEffect(func, q8))
     }
   }
-  def toSepia(color : Color) : Color = {
-    println(color.getRed + color.getGreen + color.getBlue)
-    val newRed = math min(color.getRed * .40 + color.getGreen * .77 + color.getBlue * .20, 255)
-    val newGreen = math min(color.getRed * .35 + color.getGreen * .69 + color.getBlue * .17, 255)
-    val newBlue = math min(color.getRed * .27 + color.getGreen * .53 + color.getBlue * .13, 255)
+  def toSepia(color : (Int,Int,Int)) : Color = {
+  //  println("i recied this color" + color.getRed + color.getGreen + color.getBlue)
+    val newRed = math min(color._1 * .40 + color._2 * .77 + color._3 * .20, 255)
+    val newGreen = math min(color._1 * .35 + color._2 * .69 + color._3 * .17, 255)
+    val newBlue = math min(color._1 * .27 + color._2 * .53 + color._3 * .13, 255)
+    //println(newRed + newGreen + newBlue)
     Color.rgb(newRed.asInstanceOf[Int],newGreen.asInstanceOf[Int],newBlue.asInstanceOf[Int])
   }
 
-  def removeGreen(color : Color) : Color = {
-    println(color)
-    Color.rgb(color.getRed.asInstanceOf[Int],0,color.getBlue.asInstanceOf[Int])
+  def removeGreen(color : (Int,Int,Int)) : Color = {
+    println(color + "in removeGreen")
+    Color.rgb(color._1, math min(color._2,0),color._3)
   }
-
-
-//  def toSepia(objList : List[Node]) : List[Node] =
-//    objList match {
-//      case List() => Nil
-//      case h::tail =>
-//      //40%r + 77%g + 20%b; G = 35%r + 69%g + 17%b; B = 27%r + 53%g + 13%b)
-//          val r = h.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor
-//        val colorString = ("(" + (0.4 * r.getRed + 0.77*r.getGreen + 0.20 * r.getBlue).toString + "," +
-//          (0.35*r.getRed + 0.69*r.getGreen + 0.17*r.getBlue).toString + "," +
-//          (0.27 * r.getRed + 0.53 * r.getGreen + 0.13*r.getBlue).toString + ")")
-//          val newMaterial =splitColorStringToMaterial(colorString)
-//        h.asInstanceOf[Shape3D].setMaterial(newMaterial)
-//        h+:(toSepia(tail))
-//    }
-
-//  def removeGreen(objList : List[Node]) : List[Node] =
-//    objList match {
-//      case List()=>Nil
-//      case h::tail=>
-//          val r = h.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor
-//          val color = ("(" + r.getRed + ",0," + r.getBlue + ")")
-//          val newMaterial = splitColorStringToMaterial(color)
-//        h.asInstanceOf[Shape3D].setMaterial(newMaterial)
-//        h+:removeGreen(tail)
-//    }
 }
