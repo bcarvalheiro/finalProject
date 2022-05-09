@@ -11,10 +11,14 @@ import javafx.geometry.Pos
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
-import tree.Tree.{checkInSight, createTreeFromRoot, getOcTreeLeafsSection, greenMaterial, listWiredBox, redMaterial}
+import sceneViewer.FxApp.sceneOctree
+import tree.{OcEmpty, Octree}
+import tree.Tree.{Placement, checkInSight, createTreeFromRoot, getObjList, getOcTreeLeafsSection, greenMaterial, listWiredBox, redMaterial}
 import tui.TextUserInterface
 import utils.configLoad
 import utils.configLoad.blueMaterial
+
+import scala.io.Source
 class sceneStarter extends  Application {
   override def start(stage: Stage): Unit = {
     //3D objects
@@ -44,6 +48,13 @@ class sceneStarter extends  Application {
     // 3D objects (group of nodes - javafx.scene.Node) that will be provide to the subScene
     val worldRoot:Group = new Group(wiredBox, camVolume, lineX, lineY, lineZ)
 
+//    //OcTree creation
+    val wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(sceneOctree)))
+
+    val objList = getObjList(sceneOctree)
+    configLoad.addObjectToWorld(wiredBoxes,worldRoot)
+    configLoad.addObjectToWorld(objList,worldRoot)
+    println("this is my current OcTree!" + sceneOctree)
     // Camera
     val camera = new PerspectiveCamera(true)
 
@@ -85,14 +96,34 @@ class sceneStarter extends  Application {
     subScene.heightProperty.bind(root.heightProperty)
 
     val scene = new Scene(root, 810, 610, true, SceneAntialiasing.BALANCED)
+    //Mouse left click interaction
+    scene.setOnMouseClicked((event) => {
+      camVolume.setTranslateX(camVolume.getTranslateX + 2)
+      //To-Do: Create a function to paint in a different color the Spatial Partitions that are inside the camView
+      checkInSight(wiredBoxes,camVolume,worldRoot)
+      worldRoot.getChildren.removeAll()
+    })
+
+
     stage.setTitle("PPM Project 21/22")
     stage.setScene(scene)
     stage.show
   }
+
 }
 
 object FxApp{
+  var sceneOctree : Octree[Placement] = OcEmpty
+  var objList : List[Node] = List()
+
     def main(args: Array[String]): Unit = {
-    Application.launch(classOf[sceneStarter], args: _*)
+//   Application.launch(classOf[sceneStarter], args: _*)
+      //TextUserInterface.mainLoop()
+  }
+  def setOctree (oct : Octree[Placement]) : Unit = {
+    this.sceneOctree = oct
+    this.objList = tree.Tree.getObjList(sceneOctree)
+
+    TextUserInterface.mainLoop(sceneOctree)
   }
 }

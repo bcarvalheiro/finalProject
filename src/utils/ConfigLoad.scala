@@ -21,6 +21,7 @@ import utils.configLoad
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Stream.Empty.append
+import scala.io.Source
 import scala.util.{Success, Try}
 //
 object configLoad {
@@ -45,7 +46,10 @@ object configLoad {
     object3D
   }
 
-
+  def create3DObjectsAux(configFile : String) : List[Node] = {
+    val textLines = Source.fromFile(configFile).getLines().toList
+    create3DObjects(textLines)
+}
   def create3DObjects(objectList : List[String]) : List[Node] = {
     objectList match {
       case Nil => Nil
@@ -88,55 +92,6 @@ object configLoad {
     }
   }
 
-  def createEnvironment() : Group = {
-    //3D objects
-    val lineX = new Line(0, 0, 200, 0)
-    lineX.setStroke(Color.GREEN)
-
-    val lineY = new Line(0, 0, 0, 200)
-    lineY.setStroke(Color.YELLOW)
-
-    val lineZ = new Line(0, 0, 200, 0)
-    lineZ.setStroke(Color.LIGHTSALMON)
-    lineZ.getTransforms().add(new Rotate(-90, 0, 0, 0, Rotate.Y_AXIS))
-
-    val camVolume = new Cylinder(10, 50, 10)
-    camVolume.setTranslateX(1)
-    camVolume.getTransforms().add(new Rotate(45, 0, 0, 0, Rotate.X_AXIS))
-    camVolume.setMaterial(blueMaterial)
-    camVolume.setDrawMode(DrawMode.LINE)
-
-    val wiredBox = new Box(32, 32, 32)
-    wiredBox.setTranslateX(16)
-    wiredBox.setTranslateY(16)
-    wiredBox.setTranslateZ(16)
-    wiredBox.setMaterial(redMaterial)
-    wiredBox.setDrawMode(DrawMode.LINE)
-
-    val rootBox = new Box(16, 16, 16)
-    rootBox.setTranslateX(8)
-    rootBox.setTranslateY(8)
-    rootBox.setTranslateZ(8)
-    rootBox.setMaterial(redMaterial)
-    rootBox.setDrawMode(DrawMode.LINE)
-
-    // Camera
-    val camera = new PerspectiveCamera(true)
-
-    val cameraTransform = new CameraTransformer
-    cameraTransform.setTranslate(0, 0, 0)
-    cameraTransform.getChildren.add(camera)
-    camera.setNearClip(0.1)
-    camera.setFarClip(10000.0)
-    camera.setTranslateZ(-500)
-    camera.setFieldOfView(20)
-    cameraTransform.ry.setAngle(-45.0)
-    cameraTransform.rx.setAngle(-45.0)
-
-    val envinronmentGroup : Group = addObjectToWorld(List(wiredBox, camVolume, lineX, lineY, lineZ,rootBox,cameraTransform),new Group())
-    envinronmentGroup
-  }
-
   def splitColorStringToMaterial(rgbColor : String) : PhongMaterial = {
     val colorAux  = rgbColor.substring(1,rgbColor.length-1).split(",")
     val color = Color.rgb(math min(colorAux(0).toInt, 255),math min(colorAux(1).toInt, 255),math min(colorAux(2).toInt, 255))
@@ -145,12 +100,13 @@ object configLoad {
     material
   }
 
-  def addObjectToWorld(listaObjects3D : List[Node], worldRoot : Group) : Group = listaObjects3D match {
-    case List() => worldRoot
-    case head::tail => {
-      worldRoot.getChildren.add(head)
-      addObjectToWorld(tail, worldRoot)
-    }
+   @tailrec
+   def addObjectToWorld(listaObjects3D : List[Node], worldRoot : Group) : Group =
+    listaObjects3D match {
+      case List() => worldRoot
+      case head::tail =>
+        worldRoot.getChildren.add(head)
+        addObjectToWorld(tail, worldRoot)
   }
 
   def scaleObject(listObject : List[Node], fact : Double ) : List[Node] = {
@@ -172,11 +128,12 @@ object configLoad {
   def scaleOctree(d: Double, oct : Octree[Placement]) : Octree[Placement] = {
     oct match{
       case OcEmpty => OcEmpty
-      case OcLeaf((value : Placement, (placement : Placement, lista : List[Node]))) =>
-        lista map (x => transScaleObject(x,(x.getTranslateX*d, x.getTranslateY*d,x.getTranslateZ*d),
+      case OcLeaf((value : Placement, (placement : Placement, objList : List[Node]))) =>
+        objList map (x => transScaleObject(x,(x.getTranslateX*d, x.getTranslateY*d,x.getTranslateZ*d),
          (x.getScaleX * d, x.getScaleY*d,x.getScaleZ*d)))
-        val newPlacement = ((value._1._1 * d, value._1._2 * d, value._1._3 * d), value._2 * d)
-        OcLeaf(newPlacement,lista)
+        val newPlacement = ((placement._1._1 * d, placement._1._2 * d, placement._1._3 * d), placement._2 * d)
+        val newParentsPlacement = ((value._1._1 * d, value._1._2 * d, value._1._3 * d), value._2 * d)
+        OcLeaf(newParentsPlacement,(newPlacement,objList))
       case OcNode(oldPlacement : Placement, q1, q2, q3,q4,q5,q6,q7,q8) =>
         val newPlacement = ((oldPlacement._1._1 * d, oldPlacement._1._2 * d, oldPlacement._1._3 * d), oldPlacement._2 * d)
         OcNode[Placement]((newPlacement), scaleOctree(d,q1), scaleOctree(d,q2), scaleOctree(d,q3), scaleOctree(d,q4),
@@ -184,7 +141,7 @@ object configLoad {
     }
   }
 
-  def mapColourEffect(func: (Int,Int,Int) => Color, oct: Octree[Placement]): Octree[Placement] = {
+  def mapColourEffect(func : (Int,Int,Int) => Color, oct: Octree[Placement]): Octree[Placement] = {
     oct match {
       case OcEmpty => OcEmpty
       case OcLeaf((value : Placement, (placement : Placement, lista : List[Node]))) => lista match {

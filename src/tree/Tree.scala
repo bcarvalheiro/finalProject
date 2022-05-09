@@ -4,9 +4,10 @@ import javafx.geometry.Bounds
 import javafx.scene.{Group, Node}
 import javafx.scene.paint.{Color, PhongMaterial}
 import javafx.scene.shape.{Box, Cylinder, DrawMode, Shape3D}
-import tree.Tree.{getSectionList, listOfObjInSection}
+import tree.Tree.{Placement, getSectionList, listOfObjInSection}
 import utils.configLoad
 
+import scala.annotation.tailrec
 import scala.io.Source
 
 object Tree {
@@ -33,10 +34,13 @@ object Tree {
 
   def createTreeFromRoot(placement: Placement, listObj: List[Node]): Octree[Placement] = {
     val sectionList = getSectionList(placement, listObj)
+    //sectionList contains the possible partitions of the tree
+    //now we will create the tree, with wich nodes are OcLeafs or OcNodes
     val octList = typeOfTreeNode(sectionList, placement, listObj)
     val oct: Octree[Placement] = OcNode[Placement](placement, octList(0), octList(1), octList(2), octList(3), octList(4), octList(5), octList(6), octList(7))
     //println(oct)
-    getOcTreeLeafsSection(List(oct))
+    //Esta operação não afecta em nada a criação da nossa OcTree, acho que podemos abortar
+    //getOcTreeLeafsSection(List(oct))
     oct
   }
 
@@ -65,7 +69,7 @@ object Tree {
             // if children cannot contain objects is OcLeaf
           } else {
             val v = (typeOfTreeNode(secList, parentPlacement, listObj))
-            val ocLeaf = new OcLeaf(parentPlacement, section)
+            val ocLeaf = OcLeaf(parentPlacement, section)
             //println("OcLeaf: " + ocLeaf)
             v.appended(ocLeaf)
           }
@@ -74,25 +78,23 @@ object Tree {
     }
   }
 
-//  def areSectionChildrenBigEnough(sectionChildrenList: List[Section],parentSectionObjList: List[Section]): Boolean = {
-//
-//    sectionChildrenList match {
-//      case List() => false
-//      case sec :: secList => {
-//        if (sec._2.isEmpty) areSectionChildrenBigEnough(secList,parentSectionObjList)
-//        else true
-//      }
-//    }
-//  }
+  def getObjList (octree: Octree[Placement]) : List[Node] = {
+      octree match {
+        case OcEmpty => Nil
+        case OcLeaf ((value : Placement, (placement : Placement, objList : List[Node]))) =>
+          objList
+        case OcNode (placement : Placement, q1,q2,q3,q4,q5,q6,q7,q8) =>
+          getObjList(q1) ++ getObjList(q2) ++ getObjList(q3) ++ getObjList(q4) ++ getObjList(q5) ++ getObjList(q6) ++ getObjList(q7) ++ getObjList(q8)
+      }
+  }
 
-  private def objectsInChildren(sectionChildrenList: List[Section]):List[Node]={
+  def objectsInChildren(sectionChildrenList: List[(Placement,List[Node])]):List[Node]={
     sectionChildrenList match {
       case List() => Nil
-      case sec :: secList => {
+      case sec :: secList =>
         val v = objectsInChildren(secList)
         //println(sec)
          v ::: sec._2
-      }
     }
   }
 
@@ -110,6 +112,9 @@ object Tree {
     val translZInf = (placement._1._3 - resize / 2)
     val translZSup = (placement._1._3 + resize / 2)
 
+    //creation of the spacial partition. Exemple: parente at (0,0,0) size 16 ((0,0,0),16)
+    //8 box's with position (the combinatioon for each x,y,z thats calculated) size 8
+    // ((newx,newy,newz), 8)
     val qPlacement: List[Placement] = List(((translXSup, translYSup, translZSup), resize), ((translXInf, translYSup, translZSup), resize), ((translXSup, translYInf, translZSup), resize),
       ((translXSup, translYSup, translZInf), resize), ((translXInf, translYInf, translZSup), resize), ((translXSup, translYInf, translZInf), resize),
       ((translXInf, translYSup, translZInf), resize), ((translXInf, translYInf, translZInf), resize))
@@ -121,18 +126,24 @@ object Tree {
 //    println("")
 
     //println(createSection(qPlacement, listObj))
+    //Now we got the placement for the boxes of the spacial partition, so now we can
+    //create move on to create that Section
     createSection(qPlacement, listObj)
   }
 
+  //We came from getSectionList() with the placements of the sections and graphical models we wanted to create
   def createSection(placementList: List[Placement], listObj: List[Node]): List[Section] = {
     placementList match {
       case List() => Nil
       case place :: placeList => {
+        //listOfObjInSection() will create the box with the spacial partition
+        //and will include in them the objects that fits them well (not interseting any line)
         val section: Section = (place, listOfObjInSection(place, listObj: List[Node]))
         val v = createSection(placeList, listObj)
         v.appended(section)
       }
     }
+    //now we have a list of the Sections we want to to insert in our OcTree
   }
 
 
@@ -172,8 +183,9 @@ object Tree {
     box.setTranslateZ(placement._1._3)
     (box)
   }
-
-  def getOcTreeLeafsSection(octreeList: List[Octree[Placement]]): List[Section] = {
+  //Porque é que isto recebe uma lista de OcTree se o createFromRoot devolve só uma OcTree?
+  def getOcTreeLeafsSection(octreeList: List[Octree[Placement]]): List[(Placement,List[Node])] = {
+    //Podemos só iterar através da OcTree e não de uma lista de OcTree
     octreeList match {
       case List() => Nil
       case node :: nodeList =>
@@ -214,16 +226,5 @@ object Tree {
       if (camVolume.asInstanceOf[Shape3D].getBoundsInParent.intersects(head.getBoundsInParent)) head.setMaterial(blueMaterial)
       else head.setMaterial(redMaterial)
       checkInSight(tail,camVolume,worldRoot)
-  }
-
-  def createOcTree(confFile : String) : Octree[Placement] = {
-    if (confFile.isEmpty) {
-      println("There's no configuration file")
-      System.exit(1)
-    }
-    val textLines = Source.fromFile(confFile).getLines().toList
-    val lista3DObjects = configLoad.create3DObjects(textLines)
-    val wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(createTreeFromRoot(((8.0,8.0,8.0),16),lista3DObjects))))
-    createTreeFromRoot(((8.0,8.0,8.0),16),lista3DObjects)
   }
 }
