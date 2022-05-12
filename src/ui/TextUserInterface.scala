@@ -1,28 +1,21 @@
-package tui
+package ui
 
-import camera.{CameraTransformer, CameraView}
 import javafx.application.Application
-import javafx.geometry.{Insets, Pos}
-import javafx.scene.layout.StackPane
-import javafx.scene.{Group, Node, PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
-import javafx.scene.paint.{Color, PhongMaterial}
-import javafx.scene.shape.{Box, Cylinder, DrawMode}
-import javafx.scene.transform.Rotate
-import javafx.stage.Stage
-import sceneViewer.FxApp.objList
 import sceneViewer.sceneStarter
 import tree.Octree
-import tree.Tree.{Placement, checkInSight, createTreeFromRoot, getOcTreeLeafsSection, listWiredBox}
+import tree.Tree.{Placement, createTreeFromRoot}
 import utils.configLoad
-import sceneViewer.sceneStarter
-
 import java.util.Scanner
-import scala.io.Source
 import scala.io.StdIn.readLine
-import scala.sys.SystemProperties.headless.clear
 
-object TextUserInterface {
+object TextUserInterface extends App {
   val input = new Scanner(System.in)
+  val confFile = chooseConfigFile()
+  val objcList = configLoad.create3DObjectsAux(confFile)
+  val octree : Octree[Placement] = createTreeFromRoot(((8.0,8.0,8.0),16),objcList)
+  println("this is the initial octree" + octree)
+  val ourTree = mainLoop(octree)
+  sceneViewer.FxApp.main(Array("1"))
 
   def printInitialMenu() = {
     println("============== This is the application Text-Based User Interface ============== \n" +
@@ -46,11 +39,10 @@ object TextUserInterface {
     val in = input.next()
     in.toDouble match {
       case 0.5 | 2.0 =>
-        val scaledOct = configLoad.scaleOctree(in.toDouble,octree)
-        sceneViewer.FxApp.setOctree(scaledOct)
+        val scaledOct = configLoad.scaleOctreeNew(octree,in.toDouble)
+        //sceneViewer.FxApp.setOctree(scaledOct)
         println("Octree scaled in " + in + "and the result is \n" + scaledOct)
         mainLoop(scaledOct)
-        scaledOct
       case _ =>
         print("Invalid Value")
         scaleOctree(octree)
@@ -69,23 +61,17 @@ object TextUserInterface {
     System.exit(1)
   }
 
-  def main(args: Array[String]): Unit = {
-    val confFile = chooseConfigFile()
-    //Programa inicial e cria uma octree com o ficheiro escolhido
-    val objcList = configLoad.create3DObjectsAux(confFile)
-    val octree : Octree[Placement] = createTreeFromRoot(((8.0,8.0,8.0),16),objcList)
-    println("this is the initial octree" + octree)
-    sceneViewer.FxApp.setOctree(octree)
-    mainLoop(octree)
-  }
+//  def main(args: Array[String]): Unit = {
+//
+//  }
 
 
-  def mainLoop(sceneOctree : Octree[Placement]) : Unit = {
+  def mainLoop(sceneOctree : Octree[Placement]) : Octree[Placement] = {
     printInitialMenu()
     val in = input.nextInt()
     in match {
       case 0 =>
-        Application.launch(classOf[sceneStarter])
+        sceneOctree
       case 1=>
         //Tenho aqui a OcTree escalada, supostamente (NOT TESTED), e agora preciso de criar uma scene nova com esta OcTree
         //E tambem tenho aqui as wiredBoxes que representam a tree
@@ -97,12 +83,12 @@ object TextUserInterface {
           in match {
             case 1=>
               val sepiaOct = configLoad.mapColourEffect(configLoad.toSepia (_ : Int,_ : Int ,_ : Int) ,sceneOctree)
-              sceneViewer.FxApp.setOctree(sepiaOct)
+              //sceneViewer.FxApp.setOctree(sepiaOct)
               mainLoop(sepiaOct)
               println("Sepiaed octree" + sepiaOct)
             case 2=>
               val greenLessOct = configLoad.mapColourEffect(configLoad.removeGreen(_ : Int, _ : Int, _ : Int), sceneOctree)
-              sceneViewer.FxApp.setOctree(greenLessOct)
+              //sceneViewer.FxApp.setOctree(greenLessOct)
               mainLoop(greenLessOct)
               println(greenLessOct)
             case default =>
@@ -114,6 +100,7 @@ object TextUserInterface {
         println("Invalid option")
         mainLoop(sceneOctree)
     }
+    sceneOctree
   }
 }
 

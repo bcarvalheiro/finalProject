@@ -12,7 +12,7 @@ import javafx.scene.paint.Color
 import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
 import sceneViewer.sceneStarter
 import tree.Tree.{checkInSight, createTreeFromRoot, getOcTreeLeafsSection, listWiredBox}
-import tui.TextUserInterface
+import ui.TextUserInterface
 import utils.configLoad
 import utils.configLoad.{blueMaterial, mapColourEffect, removeGreen, toSepia}
 

@@ -5,7 +5,7 @@ import javafx.scene.shape._
 import javafx.scene.transform.Rotate
 import javafx.scene.{Group, Node, PerspectiveCamera}
 import tree.{OcEmpty, OcLeaf, OcNode, Octree}
-import tree.Tree.{Placement, Section}
+import tree.Tree.{Placement, Section, checkInSight, createTreeFromRoot, getObjList, getOcTreeLeafsSection, listWiredBox}
 import javafx.scene.transform.{Rotate, Translate}
 import javafx.scene.shape._
 import javafx.scene.transform.{Rotate, Translate}
@@ -15,11 +15,13 @@ import javafx.geometry.Pos
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
-import tree.Tree.{checkInSight, createTreeFromRoot, getOcTreeLeafsSection, listWiredBox}
-import tui.TextUserInterface
+import ui.TextUserInterface
 import utils.configLoad
 
+import java.io.{File, PrintWriter}
+import scala.:+
 import scala.annotation.tailrec
+import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
 import scala.collection.immutable.Stream.Empty.append
 import scala.io.Source
 import scala.util.{Success, Try}
@@ -125,21 +127,31 @@ object configLoad {
     scaledList
   }
 
-  def scaleOctree(d: Double, oct : Octree[Placement]) : Octree[Placement] = {
-    oct match{
-      case OcEmpty => OcEmpty
-      case OcLeaf((value : Placement, (placement : Placement, objList : List[Node]))) =>
-        objList map (x => transScaleObject(x,(x.getTranslateX*d, x.getTranslateY*d,x.getTranslateZ*d),
-         (x.getScaleX * d, x.getScaleY*d,x.getScaleZ*d)))
-        val newPlacement = ((placement._1._1 * d, placement._1._2 * d, placement._1._3 * d), placement._2 * d)
-        val newParentsPlacement = ((value._1._1 * d, value._1._2 * d, value._1._3 * d), value._2 * d)
-        OcLeaf(newParentsPlacement,(newPlacement,objList))
-      case OcNode(oldPlacement : Placement, q1, q2, q3,q4,q5,q6,q7,q8) =>
-        val newPlacement = ((oldPlacement._1._1 * d, oldPlacement._1._2 * d, oldPlacement._1._3 * d), oldPlacement._2 * d)
-        OcNode[Placement]((newPlacement), scaleOctree(d,q1), scaleOctree(d,q2), scaleOctree(d,q3), scaleOctree(d,q4),
-          scaleOctree(d,q5), scaleOctree(d,q6), scaleOctree(d,q7),scaleOctree(d,q8))
+  def scaleOctreeNew(oct : Octree[Placement], fact : Double) : Octree[Placement] = {
+    val objList = getObjList(oct)
+    val scaledObjects = scaleObject(objList,fact)
+    oct match {
+      case OcNode(value : Placement, q1,q2,q3,q4,q5,q6,q7,q8) =>
+        val newPlacement : Placement = ((value._1._1, value._1._2,value._1._3), value._2 * fact)
+        createTreeFromRoot(newPlacement,scaledObjects)
     }
   }
+
+//  def scaleOctree(d: Double, oct : Octree[Placement]) : Octree[Placement] = {
+//    oct match{
+//      case OcEmpty => OcEmpty
+//      case OcLeaf((value : Placement, (placement : Placement, objList : List[Node]))) =>
+//        objList map (x => transScaleObject(x,(x.getTranslateX*d, x.getTranslateY*d,x.getTranslateZ*d),
+//         (x.getScaleX * d, x.getScaleY*d,x.getScaleZ*d)))
+//        val newPlacement = ((placement._1._1 * d, placement._1._2 * d, placement._1._3 * d), placement._2 * d)
+//        val newParentsPlacement = ((value._1._1 * d, value._1._2 * d, value._1._3 * d), value._2 * d)
+//        OcLeaf(newParentsPlacement,(newPlacement,objList))
+//      case OcNode(oldPlacement : Placement, q1, q2, q3,q4,q5,q6,q7,q8) =>
+//        val newPlacement = ((oldPlacement._1._1 * d, oldPlacement._1._2 * d, oldPlacement._1._3 * d), oldPlacement._2 * d)
+//        OcNode[Placement]((newPlacement), scaleOctree(d,q1), scaleOctree(d,q2), scaleOctree(d,q3), scaleOctree(d,q4),
+//          scaleOctree(d,q5), scaleOctree(d,q6), scaleOctree(d,q7),scaleOctree(d,q8))
+//    }
+//  }
 
   def mapColourEffect(func : (Int,Int,Int) => Color, oct: Octree[Placement]): Octree[Placement] = {
     oct match {
@@ -177,4 +189,36 @@ object configLoad {
     println(color + "in removeGreen")
     Color.rgb(color._1, math min(color._2,0),color._3)
   }
+
+  def get3DObjects(worldroot : Group) : List[Shape3D] = {
+    def get3DObjectsAux(nodeList : List[Node]) : List[Shape3D] = {
+      nodeList match {
+        case List() => Nil
+        case head::tail =>
+          if (head.isInstanceOf[Shape3D] && !(head.isInstanceOf[Line])) {
+            head.asInstanceOf[Shape3D] :: get3DObjectsAux(tail)
+          }
+          else
+            get3DObjectsAux(tail)
+      }
+    }
+    val nodeChilderList = worldroot.getChildren.toList
+    get3DObjectsAux(nodeChilderList)
+  }
+
+  def getObjectColor(obj : Shape3D) : String = {
+    "(" + (obj.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getRed * 255).toInt + "," +
+      (obj.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getGreen * 255).toInt + "," +
+      (obj.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getBlue * 255).toInt + ")"
+  }
+
+  def saveToFile(worldroot : Group) : Unit = {
+    val pritnWriter = new PrintWriter(new File("resultingConfs.txt"))
+    val objectList = get3DObjects(worldroot)
+    objectList.filter(x => x.asInstanceOf[Shape3D].getDrawMode == DrawMode.FILL).map(x => {
+      val rgb = getObjectColor(x.asInstanceOf[Shape3D])
+      pritnWriter.write(s"${if (x.isInstanceOf[Box]) "Box" else "Cylinder"} ${rgb} ${(x.getTranslateX).toInt} ${x.getTranslateY.toInt} ${x.getTranslateZ.toInt} ${x.getScaleX} ${x.getScaleY} ${x.getScaleZ} \n")
+  })
+    pritnWriter.close()
+}
 }

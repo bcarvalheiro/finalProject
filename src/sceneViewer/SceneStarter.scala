@@ -2,25 +2,25 @@ package sceneViewer
 import camera.{CameraTransformer, CameraView}
 import javafx.application.Application
 import javafx.geometry.Insets
-import javafx.scene.paint.PhongMaterial
 import javafx.scene.shape._
-import javafx.scene.transform.{Rotate, Translate}
-import javafx.scene.{Group, Node}
+import javafx.scene.transform.Rotate
+import javafx.scene.Group
 import javafx.stage.Stage
 import javafx.geometry.Pos
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
-import sceneViewer.FxApp.sceneOctree
-import tree.{OcEmpty, Octree}
-import tree.Tree.{Placement, checkInSight, createTreeFromRoot, getObjList, getOcTreeLeafsSection, greenMaterial, listWiredBox, redMaterial}
-import tui.TextUserInterface
+import tree.Tree.{checkInSight, getObjList, getOcTreeLeafsSection, listWiredBox, redMaterial}
+import ui.TextUserInterface
 import utils.configLoad
 import utils.configLoad.blueMaterial
 
 import scala.io.Source
 class sceneStarter extends  Application {
   override def start(stage: Stage): Unit = {
+
+
+
     //3D objects
     val lineX = new Line(0, 0, 200, 0)
     lineX.setStroke(Color.GREEN)
@@ -47,14 +47,13 @@ class sceneStarter extends  Application {
 
     // 3D objects (group of nodes - javafx.scene.Node) that will be provide to the subScene
     val worldRoot:Group = new Group(wiredBox, camVolume, lineX, lineY, lineZ)
-
+    val octree = TextUserInterface.ourTree
 //    //OcTree creation
-    val wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(sceneOctree)))
-
-    val objList = getObjList(sceneOctree)
+    val wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(octree)))
     configLoad.addObjectToWorld(wiredBoxes,worldRoot)
-    configLoad.addObjectToWorld(objList,worldRoot)
-    println("this is my current OcTree!" + sceneOctree)
+    configLoad.addObjectToWorld(TextUserInterface.objcList,worldRoot)
+    configLoad.saveToFile(worldRoot)
+    println("this is my current OcTree!" + TextUserInterface.ourTree)
     // Camera
     val camera = new PerspectiveCamera(true)
 
@@ -99,13 +98,13 @@ class sceneStarter extends  Application {
     //Mouse left click interaction
     scene.setOnMouseClicked((event) => {
       camVolume.setTranslateX(camVolume.getTranslateX + 2)
-      //To-Do: Create a function to paint in a different color the Spatial Partitions that are inside the camView
       checkInSight(wiredBoxes,camVolume,worldRoot)
       worldRoot.getChildren.removeAll()
     })
 
 
     stage.setTitle("PPM Project 21/22")
+    checkInSight(wiredBoxes,camVolume,worldRoot)
     stage.setScene(scene)
     stage.show
   }
@@ -113,17 +112,11 @@ class sceneStarter extends  Application {
 }
 
 object FxApp{
-  var sceneOctree : Octree[Placement] = OcEmpty
-  var objList : List[Node] = List()
-
     def main(args: Array[String]): Unit = {
-//   Application.launch(classOf[sceneStarter], args: _*)
+      if(args(0) == "1")
+        Application.launch(classOf[sceneStarter], args: _*)
+      else
+        println("Run GUI")
       //TextUserInterface.mainLoop()
-  }
-  def setOctree (oct : Octree[Placement]) : Unit = {
-    this.sceneOctree = oct
-    this.objList = tree.Tree.getObjList(sceneOctree)
-
-    TextUserInterface.mainLoop(sceneOctree)
   }
 }
