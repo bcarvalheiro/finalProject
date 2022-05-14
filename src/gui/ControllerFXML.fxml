@@ -5,22 +5,24 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.Controller">
+<AnchorPane prefHeight="586.0" prefWidth="463.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.Controller">
    <Label layoutX="14.0" layoutY="14.0" prefHeight="32.0" prefWidth="121.0" text="PPM Project" textFill="#0000cc">
       <font>
          <Font size="22.0" />
       </font>
    </Label>
-   <Button fx:id="scaleOctree05" blendMode="GREEN" layoutX="462.0" layoutY="64.0" mnemonicParsing="false" onMouseClicked="#onScaleOctree05Clicked" text="ScaleOctree 0.5" textOverrun="CENTER_ELLIPSIS" />
-   <Button fx:id="scaleOctree2" blendMode="GREEN" layoutX="463.0" layoutY="115.0" mnemonicParsing="false" onMouseClicked="#onScaleOctree2Clicked" text="ScaleOctree 2" textOverrun="CENTER_ELLIPSIS" />
-   <Button fx:id="sepia" blendMode="GREEN" layoutX="485.0" layoutY="165.0" mnemonicParsing="false" onMouseClicked="#onSepiaClicked" text="Sepia" textOverrun="CENTER_ELLIPSIS" />
-   <Button fx:id="greenRemove" blendMode="GREEN" layoutX="465.0" layoutY="212.0" mnemonicParsing="false" onMouseClicked="#onGreenRemoveClicked" text="GreenRemove" textOverrun="CENTER_ELLIPSIS" />
+   <Button fx:id="scaleOctree05" blendMode="GREEN" layoutX="15.0" layoutY="528.0" mnemonicParsing="false" onMouseClicked="#onScaleOctree05Clicked" text="ScaleOctree 0.5" textOverrun="CENTER_ELLIPSIS" />
+   <Button fx:id="scaleOctree2" blendMode="GREEN" layoutX="14.0" layoutY="502.0" mnemonicParsing="false" onMouseClicked="#onScaleOctree2Clicked" text="ScaleOctree 2" textOverrun="CENTER_ELLIPSIS" />
+   <Button fx:id="sepia" blendMode="GREEN" layoutX="183.0" layoutY="502.0" mnemonicParsing="false" onMouseClicked="#onSepiaClicked" text="Sepia" textOverrun="CENTER_ELLIPSIS" />
+   <Button fx:id="greenRemove" blendMode="GREEN" layoutX="183.0" layoutY="528.0" mnemonicParsing="false" onMouseClicked="#onGreenRemoveClicked" text="GreenRemove" textOverrun="CENTER_ELLIPSIS" />
    <Separator layoutX="439.0" orientation="VERTICAL" prefHeight="400.0" prefWidth="10.0" />
    <Separator layoutY="42.0" prefHeight="7.0" prefWidth="442.0" />
    <Region layoutX="-2.0" layoutY="49.0" prefHeight="351.0" prefWidth="442.0" />
-   <SubScene fx:id="subSceneInitial" height="351.0" layoutY="49.0" onMouseClicked="#onSubSceneClicked" width="442.0">
+   <SubScene fx:id="subSceneInitial" height="435.0" layoutY="49.0" onMouseClicked="#onSubSceneClicked" width="456.0">
       <root>
          <Region />
       </root>
    </SubScene>
+   <Label layoutX="169.0" layoutY="484.0" text="Apply Effects to graph Models" />
+   <Label layoutX="14.0" layoutY="484.0" text="Scale entire Octree" />
 </AnchorPane>

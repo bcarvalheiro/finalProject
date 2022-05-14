@@ -121,21 +121,21 @@ object ConfigLoad {
     }
   }
 
-//  def scaleOctree(d: Double, oct : Octree[Placement]) : Octree[Placement] = {
-//    oct match{
-//      case OcEmpty => OcEmpty
-//      case OcLeaf((value : Placement, (placement : Placement, objList : List[Node]))) =>
-//        objList map (x => transScaleObject(x,(x.getTranslateX*d, x.getTranslateY*d,x.getTranslateZ*d),
-//         (x.getScaleX * d, x.getScaleY*d,x.getScaleZ*d)))
-//        val newPlacement = ((placement._1._1 * d, placement._1._2 * d, placement._1._3 * d), placement._2 * d)
-//        val newParentsPlacement = ((value._1._1 * d, value._1._2 * d, value._1._3 * d), value._2 * d)
-//        OcLeaf(newParentsPlacement,(newPlacement,objList))
-//      case OcNode(oldPlacement : Placement, q1, q2, q3,q4,q5,q6,q7,q8) =>
-//        val newPlacement = ((oldPlacement._1._1 * d, oldPlacement._1._2 * d, oldPlacement._1._3 * d), oldPlacement._2 * d)
-//        OcNode[Placement]((newPlacement), scaleOctree(d,q1), scaleOctree(d,q2), scaleOctree(d,q3), scaleOctree(d,q4),
-//          scaleOctree(d,q5), scaleOctree(d,q6), scaleOctree(d,q7),scaleOctree(d,q8))
-//    }
-//  }
+  def scaleOctree(d: Double, oct : Octree[Placement]) : Octree[Placement] = {
+    oct match{
+      case OcEmpty => OcEmpty
+      case OcLeaf((value : Placement, (placement : Placement, objList : List[Node]))) =>
+        objList map (x => transScaleObject(x,(x.getTranslateX*d, x.getTranslateY*d,x.getTranslateZ*d),
+         (x.getScaleX * d, x.getScaleY*d,x.getScaleZ*d)))
+        val newPlacement = ((placement._1._1 * d, placement._1._2 * d, placement._1._3 * d), placement._2 * d)
+        val newParentsPlacement = ((value._1._1 * d, value._1._2 * d, value._1._3 * d), value._2 * d)
+        OcLeaf(newParentsPlacement,(newPlacement,objList))
+      case OcNode(oldPlacement : Placement, q1, q2, q3,q4,q5,q6,q7,q8) =>
+        val newPlacement = ((oldPlacement._1._1 * d, oldPlacement._1._2 * d, oldPlacement._1._3 * d), oldPlacement._2 * d)
+        OcNode[Placement]((newPlacement), scaleOctree(d,q1), scaleOctree(d,q2), scaleOctree(d,q3), scaleOctree(d,q4),
+          scaleOctree(d,q5), scaleOctree(d,q6), scaleOctree(d,q7),scaleOctree(d,q8))
+    }
+  }
 
   def mapColourEffect(func : (Int,Int,Int) => Color, oct: Octree[Placement]): Octree[Placement] = {
     oct match {

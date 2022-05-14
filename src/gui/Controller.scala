@@ -51,14 +51,14 @@ class Controller {
   }
 
   def onScaleOctree05Clicked() = {
-    octree = ConfigLoad.scaleOctreeNew(octree,0.5)
+    octree = ConfigLoad.scaleOctree(0.5,octree)
     InitSubScene.worldRoot.getChildren.removeIf(x => wiredBoxes.contains(x))
     wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(octree)))
     ConfigLoad.addObjectToWorld(wiredBoxes,InitSubScene.worldRoot)
   }
 
   def onScaleOctree2Clicked() = {
-    octree = ConfigLoad.scaleOctreeNew(octree,2.0)
+    octree = ConfigLoad.scaleOctree(2.0, octree)
     InitSubScene.worldRoot.getChildren.removeIf(x => wiredBoxes.contains(x))
     wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(octree)))
     ConfigLoad.addObjectToWorld(wiredBoxes,InitSubScene.worldRoot)

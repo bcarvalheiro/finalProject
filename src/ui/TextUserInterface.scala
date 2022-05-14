@@ -39,7 +39,7 @@ object TextUserInterface extends App {
     val in = input.next()
     in.toDouble match {
       case 0.5 | 2.0 =>
-        val scaledOct = ConfigLoad.scaleOctreeNew(octree,in.toDouble)
+        val scaledOct = ConfigLoad.scaleOctree(in.toDouble,octree)
         //sceneViewer.FxApp.setOctree(scaledOct)
         println("Octree scaled in " + in + "and the result is \n" + scaledOct)
         mainLoop(scaledOct)
