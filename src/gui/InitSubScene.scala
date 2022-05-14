@@ -8,6 +8,7 @@ import javafx.scene.transform.Rotate
 import javafx.scene.{Group, PerspectiveCamera, SceneAntialiasing, SubScene}
 import camera.{CameraTransformer, CameraView}
 
+
 object InitSubScene{
 
   //Materials to be applied to the 3D objects
@@ -75,6 +76,8 @@ object InitSubScene{
 
   root.setOnMouseClicked((event) => {
     camVolume.setTranslateX(camVolume.getTranslateX + 2)
+
+
   })
 }
 

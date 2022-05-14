@@ -4,14 +4,14 @@ import javafx.application.Application
 import sceneViewer.sceneStarter
 import tree.Octree
 import tree.Tree.{Placement, createTreeFromRoot}
-import utils.configLoad
+import utils.ConfigLoad
 import java.util.Scanner
 import scala.io.StdIn.readLine
 
 object TextUserInterface extends App {
   val input = new Scanner(System.in)
   val confFile = chooseConfigFile()
-  val objcList = configLoad.create3DObjectsAux(confFile)
+  val objcList = ConfigLoad.create3DObjectsAux(confFile)
   val octree : Octree[Placement] = createTreeFromRoot(((8.0,8.0,8.0),16),objcList)
   println("this is the initial octree" + octree)
   val ourTree = mainLoop(octree)
@@ -39,7 +39,7 @@ object TextUserInterface extends App {
     val in = input.next()
     in.toDouble match {
       case 0.5 | 2.0 =>
-        val scaledOct = configLoad.scaleOctreeNew(octree,in.toDouble)
+        val scaledOct = ConfigLoad.scaleOctreeNew(octree,in.toDouble)
         //sceneViewer.FxApp.setOctree(scaledOct)
         println("Octree scaled in " + in + "and the result is \n" + scaledOct)
         mainLoop(scaledOct)
@@ -82,12 +82,12 @@ object TextUserInterface extends App {
           val in = input.nextInt()
           in match {
             case 1=>
-              val sepiaOct = configLoad.mapColourEffect(configLoad.toSepia (_ : Int,_ : Int ,_ : Int) ,sceneOctree)
+              val sepiaOct = ConfigLoad.mapColourEffect(ConfigLoad.toSepia (_ : Int,_ : Int ,_ : Int) ,sceneOctree)
               //sceneViewer.FxApp.setOctree(sepiaOct)
               mainLoop(sepiaOct)
               println("Sepiaed octree" + sepiaOct)
             case 2=>
-              val greenLessOct = configLoad.mapColourEffect(configLoad.removeGreen(_ : Int, _ : Int, _ : Int), sceneOctree)
+              val greenLessOct = ConfigLoad.mapColourEffect(ConfigLoad.removeGreen(_ : Int, _ : Int, _ : Int), sceneOctree)
               //sceneViewer.FxApp.setOctree(greenLessOct)
               mainLoop(greenLessOct)
               println(greenLessOct)

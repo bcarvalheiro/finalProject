@@ -12,8 +12,8 @@ import javafx.scene.paint.Color
 import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
 import tree.Tree.{checkInSight, getObjList, getOcTreeLeafsSection, listWiredBox, redMaterial}
 import ui.TextUserInterface
-import utils.configLoad
-import utils.configLoad.blueMaterial
+import utils.ConfigLoad
+import utils.ConfigLoad.blueMaterial
 
 import scala.io.Source
 class sceneStarter extends  Application {
@@ -50,9 +50,9 @@ class sceneStarter extends  Application {
     val octree = TextUserInterface.ourTree
 //    //OcTree creation
     val wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(octree)))
-    configLoad.addObjectToWorld(wiredBoxes,worldRoot)
-    configLoad.addObjectToWorld(TextUserInterface.objcList,worldRoot)
-    configLoad.saveToFile(worldRoot)
+    ConfigLoad.addObjectToWorld(wiredBoxes,worldRoot)
+    ConfigLoad.addObjectToWorld(TextUserInterface.objcList,worldRoot)
+    ConfigLoad.saveToFile(worldRoot)
     println("this is my current OcTree!" + TextUserInterface.ourTree)
     // Camera
     val camera = new PerspectiveCamera(true)

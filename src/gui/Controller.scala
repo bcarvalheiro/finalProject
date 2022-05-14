@@ -1,16 +1,24 @@
 package gui
 
+import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.SubScene
+import javafx.scene.control.Button
 import javafx.scene.paint.Color.color
-
-import java.awt.Button
+import javafx.scene.shape.Box
 import sceneViewer.sceneStarter
 import tree.Octree
-import tree.Tree.Placement
-import utils.configLoad
+import tree.Tree.{Placement, checkInSight, createTreeFromRoot, getOcTreeLeafsSection, listWiredBox}
+import ui.TextUserInterface
+import ui.TextUserInterface.objcList
+import utils.ConfigLoad
 
 class Controller {
+
+  val configFile = TextUserInterface.chooseConfigFile()
+  val objList = ConfigLoad.create3DObjectsAux(configFile)
+  var octree : Octree[Placement] = createTreeFromRoot(((8.0,8.0,8.0),16),objList)
+  var wiredBoxes : List[Box] = listWiredBox(getOcTreeLeafsSection(List(octree)))
 
   @FXML
   private var scaleOctree05: Button = _
@@ -27,31 +35,45 @@ class Controller {
   @FXML
   private var subSceneInitial:SubScene = _
 
-  @FXML
-  private var subSceneFinal:SubScene = _
-
   //method automatically invoked after the @FXML fields have been injected
   @FXML
   def initialize(): Unit = {
     InitSubScene.subScene.widthProperty.bind(subSceneInitial.widthProperty)
     InitSubScene.subScene.heightProperty.bind(subSceneInitial.heightProperty)
+    ConfigLoad.addObjectToWorld(wiredBoxes,InitSubScene.worldRoot)
+    ConfigLoad.addObjectToWorld(objList,InitSubScene.worldRoot)
+
     subSceneInitial.setRoot(InitSubScene.root)
   }
 
+  @FXML def exitApplication(event: Nothing): Unit = {
+    Platform.exit()
+  }
+
   def onScaleOctree05Clicked() = {
-   subSceneFinal = configLoad.scaleOctreeNew(oct: Octree[Placement],0.5)
+    octree = ConfigLoad.scaleOctreeNew(octree,0.5)
+    InitSubScene.worldRoot.getChildren.removeIf(x => wiredBoxes.contains(x))
+    wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(octree)))
+    ConfigLoad.addObjectToWorld(wiredBoxes,InitSubScene.worldRoot)
   }
 
   def onScaleOctree2Clicked() = {
-    subSceneFinal = configLoad.scaleOctreeNew(oct: Octree[Placement],2.0)
+    octree = ConfigLoad.scaleOctreeNew(octree,2.0)
+    InitSubScene.worldRoot.getChildren.removeIf(x => wiredBoxes.contains(x))
+    wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(octree)))
+    ConfigLoad.addObjectToWorld(wiredBoxes,InitSubScene.worldRoot)
   }
 
   def onSepiaClicked() = {
-    subSceneFinal = configLoad.mapColourEffect(configLoad.toSepia(color : (Int,Int,Int)),oct: Octree[Placement])
+    octree = ConfigLoad.mapColourEffect(ConfigLoad.toSepia(_ : Int,_ : Int ,_ : Int),octree)
   }
 
   def onGreenRemoveClicked() = {
-   subSceneFinal = configLoad.mapColourEffect(configLoad.removeGreen(color : (Int,Int,Int)),oct: Octree[Placement])
+   octree = ConfigLoad.mapColourEffect(ConfigLoad.removeGreen(_ : Int,_ : Int ,_ : Int),octree)
   }
 
+  def onSubSceneClicked() : Unit = {
+    InitSubScene.camVolume.setTranslateX(InitSubScene.camVolume.getTranslateX + 2)
+    checkInSight(wiredBoxes,InitSubScene.camVolume,InitSubScene.worldRoot)
+  }
 }

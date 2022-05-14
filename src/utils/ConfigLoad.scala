@@ -1,32 +1,15 @@
 package utils
-import camera.CameraTransformer
 import javafx.scene.paint.{Color, PhongMaterial}
 import javafx.scene.shape._
-import javafx.scene.transform.Rotate
-import javafx.scene.{Group, Node, PerspectiveCamera}
-import tree.{OcEmpty, OcLeaf, OcNode, Octree}
-import tree.Tree.{Placement, Section, checkInSight, createTreeFromRoot, getObjList, getOcTreeLeafsSection, listWiredBox}
-import javafx.scene.transform.{Rotate, Translate}
-import javafx.scene.shape._
-import javafx.scene.transform.{Rotate, Translate}
 import javafx.scene.{Group, Node}
-import javafx.stage.Stage
-import javafx.geometry.Pos
-import javafx.scene.layout.StackPane
-import javafx.scene.paint.Color
-import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
-import ui.TextUserInterface
-import utils.configLoad
+import tree.{OcEmpty, OcLeaf, OcNode, Octree}
+import tree.Tree.{Placement, createTreeFromRoot, getObjList}
 
 import java.io.{File, PrintWriter}
-import scala.:+
 import scala.annotation.tailrec
 import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
-import scala.collection.immutable.Stream.Empty.append
 import scala.io.Source
-import scala.util.{Success, Try}
-//
-object configLoad {
+object ConfigLoad {
 
   val redMaterial = new PhongMaterial()
   redMaterial.setDiffuseColor(Color.rgb(150, 0, 0))
@@ -49,6 +32,7 @@ object configLoad {
   }
 
   def create3DObjectsAux(configFile : String) : List[Node] = {
+    //TO-DO : Try to change it to a try catch function
     val textLines = Source.fromFile(configFile).getLines().toList
     create3DObjects(textLines)
 }
@@ -131,7 +115,7 @@ object configLoad {
     val objList = getObjList(oct)
     val scaledObjects = scaleObject(objList,fact)
     oct match {
-      case OcNode(value : Placement, q1,q2,q3,q4,q5,q6,q7,q8) =>
+      case OcNode(value : Placement, _,_,_,_,_,_,_,_) =>
         val newPlacement : Placement = ((value._1._1, value._1._2,value._1._3), value._2 * fact)
         createTreeFromRoot(newPlacement,scaledObjects)
     }
@@ -160,7 +144,7 @@ object configLoad {
           case List() => OcLeaf((value,(placement,lista)))
           case head::tail =>
             val color = head.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor
-            val colorInt = (((color.getRed * 255).toInt), ((color.getGreen * 255).toInt), ((color.getBlue * 255).toInt))
+            val colorInt = ((color.getRed * 255).toInt, (color.getGreen * 255).toInt, (color.getBlue * 255).toInt)
             println("color2" + colorInt)
             val newColor : Color = func(colorInt._1,colorInt._2,colorInt._3)
             println("this is the new color " + newColor)
@@ -207,18 +191,19 @@ object configLoad {
   }
 
   def getObjectColor(obj : Shape3D) : String = {
-    "(" + (obj.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getRed * 255).toInt + "," +
-      (obj.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getGreen * 255).toInt + "," +
-      (obj.asInstanceOf[Shape3D].getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getBlue * 255).toInt + ")"
+    "(" + (obj.getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getRed * 255).toInt + "," +
+      (obj.getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getGreen * 255).toInt + "," +
+      (obj.getMaterial.asInstanceOf[PhongMaterial].getDiffuseColor.getBlue * 255).toInt + ")"
   }
 
   def saveToFile(worldroot : Group) : Unit = {
-    val pritnWriter = new PrintWriter(new File("resultingConfs.txt"))
+    System.out.println("Stage is closing, saving file in resultingConfs.txt")
+    val printWriter = new PrintWriter(new File("resultingConfs.txt"))
     val objectList = get3DObjects(worldroot)
-    objectList.filter(x => x.asInstanceOf[Shape3D].getDrawMode == DrawMode.FILL).map(x => {
-      val rgb = getObjectColor(x.asInstanceOf[Shape3D])
-      pritnWriter.write(s"${if (x.isInstanceOf[Box]) "Box" else "Cylinder"} ${rgb} ${(x.getTranslateX).toInt} ${x.getTranslateY.toInt} ${x.getTranslateZ.toInt} ${x.getScaleX} ${x.getScaleY} ${x.getScaleZ} \n")
+    objectList.filter(x => x.getDrawMode == DrawMode.FILL).map(x => {
+      val rgb = getObjectColor(x)
+      printWriter.write(s"${if (x.isInstanceOf[Box]) "Box" else "Cylinder"} ${rgb} ${(x.getTranslateX).toInt} ${x.getTranslateY.toInt} ${x.getTranslateZ.toInt} ${x.getScaleX} ${x.getScaleY} ${x.getScaleZ} \n")
   })
-    pritnWriter.close()
+    printWriter.close()
 }
 }

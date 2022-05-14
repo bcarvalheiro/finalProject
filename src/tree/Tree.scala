@@ -5,7 +5,7 @@ import javafx.scene.{Group, Node}
 import javafx.scene.paint.{Color, PhongMaterial}
 import javafx.scene.shape.{Box, Cylinder, DrawMode, Shape3D}
 import tree.Tree.{Placement, getSectionList, listOfObjInSection}
-import utils.configLoad
+import utils.ConfigLoad
 
 import scala.annotation.tailrec
 import scala.io.Source
@@ -152,13 +152,10 @@ object Tree {
     listObj match {
       case List() => Nil
       case obj :: objList => {
-
 //        println(node.getBoundsInParent)
 //        println(obj.getBoundsInParent)
 //        println(obj)
-
         if (node.getBoundsInParent.contains(obj.getBoundsInParent)) {
-
 //          println(node.getBoundsInParent)
 //          println(obj.getBoundsInParent)
 //          println(obj)
@@ -166,10 +163,9 @@ object Tree {
           val v = listOfObjInSection(placement, objList)
           (v.prepended(obj))
         } else {
-
         //  println("false")
           val v = listOfObjInSection(placement, objList)
-          (v)
+          v
         }
       }
     }
@@ -181,7 +177,7 @@ object Tree {
     box.setTranslateX(placement._1._1)
     box.setTranslateY(placement._1._2)
     box.setTranslateZ(placement._1._3)
-    (box)
+    box
   }
   //Porque é que isto recebe uma lista de OcTree se o createFromRoot devolve só uma OcTree?
   def getOcTreeLeafsSection(octreeList: List[Octree[Placement]]): List[(Placement,List[Node])] = {

@@ -13,8 +13,8 @@ import javafx.scene.{PerspectiveCamera, Scene, SceneAntialiasing, SubScene}
 import sceneViewer.sceneStarter
 import tree.Tree.{checkInSight, createTreeFromRoot, getOcTreeLeafsSection, listWiredBox}
 import ui.TextUserInterface
-import utils.configLoad
-import utils.configLoad.{blueMaterial, mapColourEffect, removeGreen, toSepia}
+import utils.ConfigLoad
+import utils.ConfigLoad.{blueMaterial, mapColourEffect, removeGreen, toSepia}
 
 import scala.io.Source
 
