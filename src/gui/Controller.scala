@@ -19,7 +19,8 @@ class Controller {
   val objList = ConfigLoad.create3DObjectsAux(configFile)
   val minSize = TextUserInterface.chooseMinSize()
   val maxDepth = TextUserInterface.chooseDepth()
-  var octree : Octree[Placement] = createTreeFromRoot(((8.0,8.0,8.0),16),objList,minSize,maxDepth)
+  val maxSize = TextUserInterface.chooseInitialSize()
+  var octree : Octree[Placement] = createTreeFromRoot(((maxSize/2,maxSize/2,maxSize/2),maxSize),objList,minSize,maxDepth)
   var wiredBoxes : List[Box] = listWiredBox(getOcTreeLeafsSection(List(octree)))
 
   @FXML

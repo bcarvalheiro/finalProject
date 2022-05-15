@@ -14,11 +14,20 @@ object TextUserInterface extends App {
   val objcList = ConfigLoad.create3DObjectsAux(confFile)
   val maxDepth = chooseDepth()
   val minSize = chooseMinSize()
-  val octree : Octree[Placement] = createTreeFromRoot(((8.0,8.0,8.0),16),objcList,minSize,maxDepth)
+  val initialSize = chooseInitialSize()
+  val octree : Octree[Placement] = createTreeFromRoot(((initialSize / 2,initialSize / 2,initialSize / 2),initialSize),objcList,minSize,maxDepth)
   println("this is the initial octree" + octree)
   val ourTree = mainLoop(octree)
   sceneViewer.FxApp.main(Array("1"))
 
+  def chooseInitialSize() : Int = {
+    println("Choose the size of the root spatial partition\n")
+    val initialSize = readLine(">")
+    if(initialSize.toInt > 0)
+      initialSize.toInt
+    else
+      32
+  }
 
   def chooseDepth():Int = {
     println("Choose the max depth of the Octree : ")

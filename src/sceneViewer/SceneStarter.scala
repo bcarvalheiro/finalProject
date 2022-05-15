@@ -38,17 +38,18 @@ class sceneStarter extends  Application {
     camVolume.setMaterial(blueMaterial)
     camVolume.setDrawMode(DrawMode.LINE)
 
-    val wiredBox = new Box(32, 32, 32)
-    wiredBox.setTranslateX(16)
-    wiredBox.setTranslateY(16)
-    wiredBox.setTranslateZ(16)
+    val wiredBox = new Box(TextUserInterface.initialSize, TextUserInterface.initialSize, TextUserInterface.initialSize)
+    wiredBox.setTranslateX(TextUserInterface.initialSize/2)
+    wiredBox.setTranslateY(TextUserInterface.initialSize/2)
+    wiredBox.setTranslateZ(TextUserInterface.initialSize/2)
     wiredBox.setMaterial(redMaterial)
     wiredBox.setDrawMode(DrawMode.LINE)
 
     // 3D objects (group of nodes - javafx.scene.Node) that will be provide to the subScene
     val worldRoot:Group = new Group(wiredBox, camVolume, lineX, lineY, lineZ)
     val octree = TextUserInterface.ourTree
-//    //OcTree creation
+
+    //OcTree creation
     val wiredBoxes = listWiredBox(getOcTreeLeafsSection(List(octree)))
     ConfigLoad.addObjectToWorld(wiredBoxes,worldRoot)
     ConfigLoad.addObjectToWorld(TextUserInterface.objcList,worldRoot)
