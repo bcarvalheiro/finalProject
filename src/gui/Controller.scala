@@ -17,7 +17,9 @@ class Controller {
 
   val configFile = TextUserInterface.chooseConfigFile()
   val objList = ConfigLoad.create3DObjectsAux(configFile)
-  var octree : Octree[Placement] = createTreeFromRoot(((8.0,8.0,8.0),16),objList)
+  val minSize = TextUserInterface.chooseMinSize()
+  val maxDepth = TextUserInterface.chooseDepth()
+  var octree : Octree[Placement] = createTreeFromRoot(((8.0,8.0,8.0),16),objList,minSize,maxDepth)
   var wiredBoxes : List[Box] = listWiredBox(getOcTreeLeafsSection(List(octree)))
 
   @FXML
@@ -46,7 +48,8 @@ class Controller {
     subSceneInitial.setRoot(InitSubScene.root)
   }
 
-  @FXML def exitApplication(event: Nothing): Unit = {
+  @FXML
+  def exitApplication(event: Nothing): Unit = {
     Platform.exit()
   }
 

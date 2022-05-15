@@ -32,45 +32,44 @@ object Tree {
   type Section = (Placement, List[Node]) //example: ( ((0.0,0.0,0.0), 2.0), List(new Cylinder(0.5, 1, 10)))
 
 
-  def createTreeFromRoot(placement: Placement, listObj: List[Node]): Octree[Placement] = {
-    val sectionList = getSectionList(placement, listObj)
-    //sectionList contains the possible partitions of the tree
-    //now we will create the tree, with wich nodes are OcLeafs or OcNodes
-    val octList = typeOfTreeNode(sectionList, placement, listObj)
-    val oct: Octree[Placement] = OcNode[Placement](placement, octList(0), octList(1), octList(2), octList(3), octList(4), octList(5), octList(6), octList(7))
-    //println(oct)
-    //Esta operação não afecta em nada a criação da nossa OcTree, acho que podemos abortar
-    //getOcTreeLeafsSection(List(oct))
-    oct
-  }
+    def createTreeFromRoot(placement: Placement, listObj: List[Node], minSize: Int, maxTreeDepth: Int): Octree[Placement] = {
+      val sectionList = getSectionList(placement, listObj)
+      val octList = typeOfTreeNode(sectionList, placement, listObj, minSize, maxTreeDepth, 0)
+      val oct: Octree[Placement] = OcNode[Placement](placement, octList(0), octList(1), octList(2), octList(3), octList(4), octList(5), octList(6), octList(7))
+      println(oct)
+      getOcTreeLeafsSection(List(oct))
+      oct
+    }
 
-    def typeOfTreeNode(sectionList: List[Section], parentPlacement: Placement, listObj: List[Node]): List[Octree[Placement]] = {
+
+  def typeOfTreeNode(sectionList: List[Section], parentPlacement: Placement, listObj: List[Node], minSize: Int, maxTreeDepth: Int, actualTreeDepth: Int): List[Octree[Placement]] = {
     sectionList match {
       case List() => Nil
       case section :: secList => {
         // if section as no object in List is OcEmpty
         if (section._2.isEmpty) {
-          val v = typeOfTreeNode(secList, parentPlacement, listObj)
+          val v = typeOfTreeNode(secList, parentPlacement, listObj, minSize, maxTreeDepth,0)
           (v.appended(OcEmpty))
           // otherwise
         } else {
           // if children can fit ALL objects in parent is OcNode
-        //  if (areSectionChildrenBigEnough(getSectionList(section._1, listObj),listOfObjInSection(section._1,listObj))) {
-          //println("Tamanho_Parent: " + section._2.size)
-         // println("Tamanho_filhos: " + objectsInChildren(getSectionList(section._1, listObj)).size)
-          //println(objectsInChildren(getSectionList(section._1, listObj)))
-          if (section._2.size == objectsInChildren(getSectionList(section._1, listObj)).size) {
+          println("Tamanho_Parent: " + section._2.size)
+          println("Tamanho_filhos: " + objectsInChildren(getSectionList(section._1, listObj)).size)
+          println(objectsInChildren(getSectionList(section._1, listObj)))
+          if (section._2.size == objectsInChildren(getSectionList(section._1, listObj)).size &&
+            (maxTreeDepth > actualTreeDepth || maxTreeDepth == -1) &&
+            (section._1._2 / 2 >= minSize || minSize == -1)) {
             val sectionList = getSectionList(section._1, listObj)
-            val octList = typeOfTreeNode(sectionList, section._1, listObj)
+            val octList = typeOfTreeNode(sectionList, section._1, listObj, minSize,maxTreeDepth,actualTreeDepth + 1)
             val ocNode = new OcNode[Placement](section._1, octList(0), octList(1), octList(2), octList(3), octList(4), octList(5), octList(6), octList(7))
-            val v = typeOfTreeNode(secList, parentPlacement, listObj)
-            //println("OcNode: " + ocNode)
+            val v = typeOfTreeNode(secList, parentPlacement, listObj, minSize, maxTreeDepth, actualTreeDepth + 1)
+            println("OcNode: " + ocNode)
             v.appended(ocNode)
             // if children cannot contain objects is OcLeaf
           } else {
-            val v = (typeOfTreeNode(secList, parentPlacement, listObj))
-            val ocLeaf = OcLeaf(parentPlacement, section)
-            //println("OcLeaf: " + ocLeaf)
+            val v = typeOfTreeNode(secList, parentPlacement, listObj,minSize,maxTreeDepth,0)
+            val ocLeaf = new OcLeaf(parentPlacement, section)
+            println("OcLeaf: " + ocLeaf)
             v.appended(ocLeaf)
           }
         }

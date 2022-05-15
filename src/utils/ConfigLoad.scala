@@ -4,6 +4,7 @@ import javafx.scene.shape._
 import javafx.scene.{Group, Node}
 import tree.{OcEmpty, OcLeaf, OcNode, Octree}
 import tree.Tree.{Placement, createTreeFromRoot, getObjList}
+import ui.TextUserInterface
 
 import java.io.{File, PrintWriter}
 import scala.annotation.tailrec
@@ -117,7 +118,7 @@ object ConfigLoad {
     oct match {
       case OcNode(value : Placement, _,_,_,_,_,_,_,_) =>
         val newPlacement : Placement = ((value._1._1, value._1._2,value._1._3), value._2 * fact)
-        createTreeFromRoot(newPlacement,scaledObjects)
+        createTreeFromRoot(newPlacement,scaledObjects,TextUserInterface.minSize, TextUserInterface.maxDepth)
     }
   }
 
