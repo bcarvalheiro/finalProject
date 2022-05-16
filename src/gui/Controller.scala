@@ -23,6 +23,7 @@ class Controller {
   var octree : Octree[Placement] = createTreeFromRoot(((maxSize/2,maxSize/2,maxSize/2),maxSize),objList,minSize,maxDepth)
   var wiredBoxes : List[Box] = listWiredBox(getOcTreeLeafsSection(List(octree)))
 
+
   @FXML
   private var scaleOctree05: Button = _
 
@@ -45,8 +46,8 @@ class Controller {
     InitSubScene.subScene.heightProperty.bind(subSceneInitial.heightProperty)
     ConfigLoad.addObjectToWorld(wiredBoxes,InitSubScene.worldRoot)
     ConfigLoad.addObjectToWorld(objList,InitSubScene.worldRoot)
-
     subSceneInitial.setRoot(InitSubScene.root)
+
   }
 
   @FXML

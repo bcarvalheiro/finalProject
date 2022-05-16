@@ -39,9 +39,9 @@ class sceneStarter extends  Application {
     camVolume.setDrawMode(DrawMode.LINE)
 
     val wiredBox = new Box(TextUserInterface.initialSize, TextUserInterface.initialSize, TextUserInterface.initialSize)
-    wiredBox.setTranslateX(TextUserInterface.initialSize/2)
-    wiredBox.setTranslateY(TextUserInterface.initialSize/2)
-    wiredBox.setTranslateZ(TextUserInterface.initialSize/2)
+    wiredBox.setTranslateX(TextUserInterface.initialSize / 2)
+    wiredBox.setTranslateY(TextUserInterface.initialSize / 2)
+    wiredBox.setTranslateZ(TextUserInterface.initialSize / 2)
     wiredBox.setMaterial(redMaterial)
     wiredBox.setDrawMode(DrawMode.LINE)
 

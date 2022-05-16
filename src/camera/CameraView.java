@@ -28,7 +28,6 @@ package camera; /**
  */
 
 
-import camera.CameraTransformer;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;

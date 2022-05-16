@@ -15,18 +15,32 @@ object TextUserInterface extends App {
   val maxDepth = chooseDepth()
   val minSize = chooseMinSize()
   val initialSize = chooseInitialSize()
-  val octree : Octree[Placement] = createTreeFromRoot(((initialSize / 2,initialSize / 2,initialSize / 2),initialSize),objcList,minSize,maxDepth)
+  val placement = (((initialSize / 2).toDouble, (initialSize / 2).toDouble, (initialSize / 2).toDouble), initialSize.toDouble)
+
+  if (objcList.size != tree.Tree.listOfObjInSection(placement, objcList).size) {
+    println("ERROR: At least one object is out of bounds!")
+    System.exit(0)
+  }
+
+  val octree: Octree[Placement] = createTreeFromRoot(placement, objcList, minSize, maxDepth)
   println("this is the initial octree" + octree)
   val ourTree = mainLoop(octree)
   sceneViewer.FxApp.main(Array("1"))
 
-  def chooseInitialSize() : Int = {
-    println("Choose the size of the root spatial partition\n")
+
+  def chooseInitialSize(): Int = {
+    println("Choose the size of the root spatial partition: (Choose a value between 1 and 32)")
     val initialSize = readLine(">")
-    if(initialSize.toInt > 0)
+    if (initialSize.toInt > 0 && initialSize.toInt < 33)
       initialSize.toInt
-    else
+    else if (initialSize.toInt < 1) {
+      println("The size of the root spatial partition will be set to 1")
+      1
+    }
+    else {
+      println("The size of the root spatial partition will be set to 32")
       32
+    }
   }
 
   def chooseDepth():Int = {
